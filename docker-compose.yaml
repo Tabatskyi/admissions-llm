@@ -37,17 +37,5 @@ services:
               capabilities: [gpu]
     profiles: ["ollama"]
 
-  query:
-    build: .
-    volumes:
-      - .:/app
-    working_dir: /app
-    env_file:
-      - .env
-    command: python query_bot.py
-    depends_on:
-      - ollama
-    profiles: ["query"]
-
 volumes:
   ollama_data:
