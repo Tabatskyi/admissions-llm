@@ -1,0 +1,53 @@
+services:
+  finetune:
+    build: .
+    image: llm-finetune
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file: 
+      - .env
+    environment: 
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+    command: bash -c "python generate_modelfile.py && python finetune.py"
+    profiles: ["finetune"]
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - .:/app
+    working_dir: /app
+    command: bash -c "ollama serve & sleep 5 && ollama create admissions-bot -f Modelfile && wait"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles: ["ollama"]
+
+  query:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file:
+      - .env
+    command: python query_bot.py
+    depends_on:
+      - ollama
+    profiles: ["query"]
+
+volumes:
+  ollama_data:
