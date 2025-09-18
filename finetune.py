@@ -7,7 +7,6 @@ from transformers import (
     AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
     TrainingArguments, Trainer, DataCollatorForLanguageModeling
 )
-from trl import SFTTrainer
 
 ADMISSIONS_INSTRUCTION = "You are an admissions expert. Answer only in Ukrainian or English."
 MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
@@ -40,17 +39,27 @@ def formatting_prompts_func(example):
 
 dataset = dataset.map(formatting_prompts_func)
 
+def tokenize_function(examples):
+    return tokenizer(
+        examples["text"],
+        truncation=True,
+        max_length=512,
+        padding=False,
+    )
+
+tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=dataset.column_names)
+
 training_args = TrainingArguments(
     output_dir=OUTPUT_DIR, num_train_epochs=2, per_device_train_batch_size=4,
     gradient_accumulation_steps=4, warmup_steps=100, logging_steps=10,
     save_steps=500, fp16=True, remove_unused_columns=False
 )
 
-trainer = SFTTrainer(
-    model=model, tokenizer=tokenizer, train_dataset=dataset,
-    dataset_text_field="text", max_seq_length=512,
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_dataset,
     data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
-    args=training_args
 )
 
 trainer.train()
