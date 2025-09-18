@@ -20,7 +20,7 @@ if token:
 else:
     raise ValueError("Set HUGGING_FACE_HUB_TOKEN env var for gated model access.")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=False)
 tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME, quantization_config=bnb_config, device_map="auto"
