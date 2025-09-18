@@ -10,7 +10,7 @@ from transformers import (
 from trl import SFTTrainer
 
 ADMISSIONS_INSTRUCTION = "You are an admissions expert. Answer only in Ukrainian or English."
-MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
+MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
 OUTPUT_DIR = "./fine-tuned-mistral"
 bnb_config = BitsAndBytesConfig(load_in_4bit=True)
 
