@@ -1,3 +1,4 @@
 .env
+.venv/
 fine-tuned-mistral/
 __pycache__/
