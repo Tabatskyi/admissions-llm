@@ -2,3 +2,4 @@
 .venv/
 fine-tuned-mistral/
 __pycache__/
+Modelfile
