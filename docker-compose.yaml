@@ -57,6 +57,20 @@ services:
               capabilities: [gpu]
     profiles: ["ollama"]
 
+  model-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: >-
+      sh -c "ollama show admissions-bot:latest >/dev/null 2>&1 || ollama create admissions-bot -f /app/Modelfile"
+    profiles: ["ollama"]
+
 volumes:
   ollama_data:
   hf_cache:
