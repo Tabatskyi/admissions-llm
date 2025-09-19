@@ -11,11 +11,25 @@ services:
               capabilities: [gpu]
     volumes:
       - .:/app
+      - hf_cache:/root/.cache/huggingface
     working_dir: /app
     env_file: 
       - .env
     environment: 
       - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+      - HF_HOME=/root/.cache/huggingface
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface
+      - NUM_EPOCHS=0.25
+      - PER_DEVICE_TRAIN_BATCH_SIZE=4
+      - GRAD_ACCUM_STEPS=1
+      - MAX_LENGTH=256
+      - LOAD_IN_4BIT=true
+      - FP16=true
+      - BF16=false
+      - SAVE_STEPS=0
+      - LOGGING_STEPS=5
+      - OPTIM=paged_adamw_8bit
+      - BASE_MODEL=${BASE_MODEL:-mistralai/Mistral-7B-Instruct-v0.3}
     command: bash -c "python generate_modelfile.py && python finetune.py"
     profiles: ["finetune"]
 
@@ -23,11 +37,17 @@ services:
     image: ollama/ollama:latest
     ports:
       - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
     volumes:
       - ollama_data:/root/.ollama
       - .:/app
     working_dir: /app
-    command: bash -c "ollama serve & sleep 5 && ollama create admissions-bot -f Modelfile && wait"
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list > /dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
     deploy:
       resources:
         reservations:
@@ -39,3 +59,4 @@ services:
 
 volumes:
   ollama_data:
+  hf_cache:
