@@ -2,7 +2,7 @@
 - Docker Desktop with WSL2 backend
 - NVIDIA GPU with CUDA support and latest drivers
 - Hugging Face account with access to [Mistral-7B-Instruct-v0.3](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3) model and [Hugging Face token](https://huggingface.co/settings/tokens) in the *.env* file with `HUGGING_FACE_HUB_TOKEN` variable
-- Dataset in JSON format with `instruction`, `input` and `output` fields, for example [this one](admissions_data.json).
+- Dataset in JSONL format with `prompt` and `completion` fields, for example [this one](admissions_data.jsonl).
 - *ollama* package for python: `pip install ollama`
 
 ## How this works:
