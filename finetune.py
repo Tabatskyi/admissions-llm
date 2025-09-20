@@ -12,7 +12,7 @@ ADMISSIONS_INSTRUCTION = os.getenv(
 
 MODEL_NAME = os.getenv("BASE_MODEL", "mistralai/Mistral-7B-Instruct-v0.3")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./fine-tuned-mistral")
-
+# defaults to <40xx gpus
 USE_4BIT = os.getenv("LOAD_IN_4BIT", "true").lower() in {"1", "true", "yes"}
 USE_FP16 = os.getenv("FP16", "true").lower() in {"1", "true", "yes"}
 USE_BF16 = os.getenv("BF16", "false").lower() in {"1", "true", "yes"}
@@ -25,21 +25,30 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype=BNB_COMPUTE_DTYPE,
 )
 
-token = os.getenv("HUGGING_FACE_HUB_TOKEN")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", os.getenv("TOKENIZERS_PARALLELISM", "false"))
+token = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
 if token:
-    login(token=token)
+    try:
+        login(token=token)
+    except Exception:
+        pass
 else:
-    raise ValueError("Set HUGGING_FACE_HUB_TOKEN env var for gated model access.")
+    raise ValueError("Set HF_TOKEN or HUGGING_FACE_HUB_TOKEN env var for gated model access.")
 
 os.environ.setdefault("HF_HOME", os.getenv("HF_HOME", "/root/.cache/huggingface"))
-os.environ.setdefault("TRANSFORMERS_CACHE", os.getenv("TRANSFORMERS_CACHE", os.environ["HF_HOME"]))
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
 tokenizer.pad_token = tokenizer.eos_token
+
+device_map = "auto" if USE_4BIT else None
+dtype = (torch.bfloat16 if USE_BF16 else (torch.float16 if USE_FP16 else None))
+
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
     quantization_config=bnb_config if USE_4BIT else None,
-    device_map="auto",
+    device_map=device_map,
+    dtype=dtype,
+    low_cpu_mem_usage=True,
 )
 
 try:
@@ -83,7 +92,7 @@ def tokenize_function(examples):
     )
 
 tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=dataset.column_names)
-
+# defaults only good for smoke testing
 num_train_epochs = float(os.getenv("NUM_EPOCHS", "1"))
 per_device_train_batch_size = int(os.getenv("PER_DEVICE_TRAIN_BATCH_SIZE", "4"))
 gradient_accumulation_steps = int(os.getenv("GRAD_ACCUM_STEPS", "2"))

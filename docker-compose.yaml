@@ -13,22 +13,22 @@ services:
       - .:/app
       - hf_cache:/root/.cache/huggingface
     working_dir: /app
-    env_file: 
-      - .env
+    env_file: .env
     environment: 
       - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
       - HF_HOME=/root/.cache/huggingface
-      - TRANSFORMERS_CACHE=/root/.cache/huggingface
-      - NUM_EPOCHS=0.25
+      - TOKENIZERS_PARALLELISM=true
+      - DATALOADER_WORKERS=0
+      - NUM_EPOCHS=4.0
       - PER_DEVICE_TRAIN_BATCH_SIZE=4
       - GRAD_ACCUM_STEPS=1
       - MAX_LENGTH=256
-      - LOAD_IN_4BIT=true
-      - FP16=true
-      - BF16=false
-      - SAVE_STEPS=0
+      - LOAD_IN_4BIT=false
+      - FP16=false   
+      - BF16=true   
+      - SAVE_STEPS=0 
       - LOGGING_STEPS=5
-      - OPTIM=paged_adamw_8bit
+      - OPTIM=adamw_torch_fused 
       - BASE_MODEL=${BASE_MODEL:-mistralai/Mistral-7B-Instruct-v0.3}
     command: bash -c "python generate_modelfile.py && python finetune.py"
     profiles: ["finetune"]
