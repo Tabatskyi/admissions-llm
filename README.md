@@ -5,9 +5,11 @@
 - Dataset in JSON format with `instruction`, `input` and `output` fields, for example [this one](admissions_data.json).
 - *ollama* package for python: `pip install ollama`
 
-## How this works:
+## Train the model:
 0. Build training image: `docker compose --profile finetune build` (one time)
 1. Run training container: `docker compose --profile finetune up --force-recreate`, if everything ok you will receive message and `fine-tuned-mistral` directory will be filled
-2. Run AI container: `docker compose --profile ollama up`
-3. Run client: `python query_bot.py`
-4. Start messaging
+
+## Run the bot:
+1. Run AI container: `docker compose --profile ollama up`
+2. Run client: `python query_bot.py`
+3. Start messaging
